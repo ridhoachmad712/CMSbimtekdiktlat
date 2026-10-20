@@ -1,0 +1,136 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views';
+@source '../../app/Livewire';
+
+@theme {
+    /* Teks terkecil 13px agar tetap terbaca di ponsel. */
+    --text-xs: 0.8125rem;
+    --text-xs--line-height: 1.125rem;
+
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Merah marun sesuai logo PENA (gradasi #3c0018 → #900024). */
+    --color-brand-50: #fdf2f4;
+    --color-brand-100: #fbe4e9;
+    --color-brand-200: #f5c6d1;
+    --color-brand-500: #b4234a;
+    --color-brand-600: #9b1239;
+    --color-brand-700: #840b2f;
+    --color-brand-800: #6c0a28;
+    --color-brand-900: #560822;
+    --color-brand-950: #360515;
+
+    --color-accent-300: #fcd970;
+    --color-accent-400: #f9c43b;
+    --color-accent-500: #f0a911;
+
+    --color-wa: #25d366;
+    --color-wa-dark: #128c4b;
+}
+
+@layer components {
+    .container-page {
+        @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+    }
+
+    /* Tinggi min. 44px: target sentuh yang nyaman di ponsel. */
+    .btn {
+        @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2;
+    }
+
+    .btn-primary {
+        @apply bg-brand-700 text-white hover:bg-brand-800 focus-visible:outline-brand-700;
+    }
+
+    .btn-accent {
+        @apply bg-accent-400 text-brand-950 hover:bg-accent-300 focus-visible:outline-accent-500;
+    }
+
+    .btn-wa {
+        @apply bg-wa-dark text-white hover:bg-[#0f7a41] focus-visible:outline-wa-dark;
+    }
+
+    .btn-outline {
+        @apply border border-slate-300 bg-white text-slate-800 hover:border-brand-500 hover:text-brand-700;
+    }
+
+    /* Chip filter (kategori/kota) yang bisa digeser horizontal di ponsel. */
+    .chip {
+        @apply inline-flex min-h-10 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium whitespace-nowrap text-slate-700 hover:border-brand-500 hover:text-brand-700;
+    }
+
+    .chip-active {
+        @apply border-brand-700 bg-brand-700 text-white hover:text-white;
+    }
+
+    .card {
+        @apply rounded-xl border border-slate-200 bg-white shadow-sm;
+    }
+
+    .form-label {
+        @apply mb-1 block text-sm font-medium text-slate-700;
+    }
+
+    /* 16px di ponsel: iOS Safari otomatis zoom pada field < 16px. Tinggi min. 44px untuk sentuhan. */
+    .form-input {
+        @apply block min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-200 focus:outline-none sm:text-sm;
+    }
+
+    .section-title {
+        @apply text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl;
+    }
+
+    /* Konten HTML dari RichEditor (artikel, materi, halaman statis). */
+    .rich-content {
+        @apply leading-relaxed text-slate-700;
+    }
+
+    .rich-content > * + * {
+        @apply mt-4;
+    }
+
+    .rich-content h2 {
+        @apply mt-8 text-xl font-bold text-slate-900 scroll-mt-24;
+    }
+
+    .rich-content h3 {
+        @apply mt-6 text-lg font-semibold text-slate-900;
+    }
+
+    .rich-content ul {
+        @apply list-disc pl-6;
+    }
+
+    .rich-content ol {
+        @apply list-decimal pl-6;
+    }
+
+    .rich-content a {
+        @apply text-brand-600 underline;
+    }
+
+    .rich-content blockquote {
+        @apply border-l-4 border-brand-200 pl-4 italic;
+    }
+
+    .rich-content table {
+        /* Tabel lebar dapat digulir di layar kecil. */
+        @apply block w-full overflow-x-auto border-collapse text-sm;
+    }
+
+    .rich-content th,
+    .rich-content td {
+        @apply border border-slate-200 px-3 py-2 text-left;
+    }
+
+    .rich-content img {
+        /* Gambar impor WordPress membawa lebar piksel tetap. */
+        @apply rounded-lg;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+}

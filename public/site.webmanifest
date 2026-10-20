@@ -1,0 +1,13 @@
+{
+    "name": "Pusat Edukasi Indonesia",
+    "short_name": "PENA",
+    "lang": "id",
+    "start_url": "/",
+    "display": "browser",
+    "background_color": "#f8fafc",
+    "theme_color": "#6c0a28",
+    "icons": [
+        { "src": "/images/icon-192.png", "sizes": "192x192", "type": "image/png" },
+        { "src": "/images/logo.png", "sizes": "512x512", "type": "image/png" }
+    ]
+}
