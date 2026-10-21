@@ -188,6 +188,13 @@ class MobileSeoTest extends TestCase
         $this->assertMatchesRegularExpression('~aria-current="page"\s*>Kontak</a>~', $html);
     }
 
+    public function test_home_shows_training_models_from_old_site(): void
+    {
+        $this->get('/')
+            ->assertSee('Model Pelatihan &amp; Bimtek', false)
+            ->assertSeeInOrder(['Model Pelatihan', 'Bimbingan teknis bagi pemerintah daerah', 'Workshop interaktif', 'Seminar membahas', 'Pelatihan resmi dengan pengakuan kompetensi']);
+    }
+
     public function test_city_description_is_shown(): void
     {
         $city = City::where('slug', 'bali')->first();

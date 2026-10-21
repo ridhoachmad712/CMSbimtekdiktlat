@@ -74,6 +74,7 @@ class ImportWordPress extends Command
             ['Artikel baru', $importer->stats['created']],
             ['Artikel diperbarui', $importer->stats['updated']],
             ['Dilewati (sudah ada)', $importer->stats['skipped']],
+            ['Spam dilewati', $importer->stats['spam']],
             ['Berkas diunduh', $importer->media->downloaded],
             ['Berkas dipakai ulang', $importer->media->reused],
             ['Berkas gagal', count($importer->media->failed)],

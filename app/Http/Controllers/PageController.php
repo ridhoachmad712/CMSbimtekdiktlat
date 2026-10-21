@@ -14,8 +14,10 @@ class PageController extends Controller
         $model = Page::where('slug', $page)->where('is_published', true)->first();
 
         if (! $model) {
-            // Alamat artikel WordPress lama (/{slug}/) diarahkan permanen ke /artikel/{slug}.
-            $post = Post::published()->where('wp_slug', $page)->first();
+            // Alamat artikel WordPress lama (/{slug}/) diarahkan permanen ke /artikel/{slug},
+            // termasuk alamat lama yang dulu dialihkan Rank Math (config/legacy.php).
+            $wpSlug = config('legacy.post_aliases')[$page] ?? $page;
+            $post = Post::published()->where('wp_slug', $wpSlug)->first();
             abort_unless($post, 404);
 
             return redirect()->route('posts.show', $post, 301);

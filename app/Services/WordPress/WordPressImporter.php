@@ -24,7 +24,7 @@ class WordPressImporter
     private ?int $authorId = null;
 
     /** @var array{created: int, updated: int, skipped: int} */
-    public array $stats = ['created' => 0, 'updated' => 0, 'skipped' => 0];
+    public array $stats = ['created' => 0, 'updated' => 0, 'skipped' => 0, 'spam' => 0];
 
     public function __construct(
         private WordPressClient $client,
@@ -72,9 +72,14 @@ class WordPressImporter
         return $processed;
     }
 
-    /** @return array{0: 'created'|'updated'|'skipped', 1: Post|null} */
+    /** @return array{0: 'created'|'updated'|'skipped'|'spam', 1: Post|null} */
     public function importOne(array $wp): array
     {
+        // Artikel spam (judi dsb.) yang disusupkan ke situs lama tidak pernah diimpor.
+        if (SpamFilter::isSpam(html_entity_decode($wp['title']['rendered'] ?? ''), $wp['slug'] ?? '', $wp['content']['rendered'] ?? '')) {
+            return ['spam', null];
+        }
+
         $existing = Post::where('wp_id', $wp['id'])->first();
         if ($existing && ! $this->updateExisting) {
             return ['skipped', $existing];

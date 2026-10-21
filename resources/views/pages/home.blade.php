@@ -85,6 +85,28 @@
         <a href="{{ route('schedules') }}" class="btn btn-outline mt-4 w-full sm:hidden">Lihat semua jadwal</a>
     </section>
 
+    {{-- Model pelatihan (dari beranda situs lama). --}}
+    <section class="container-page mt-10 sm:mt-16" aria-labelledby="model-heading">
+        <h2 id="model-heading" class="section-title">Model Pelatihan &amp; Bimtek</h2>
+        <p class="mt-1 max-w-3xl text-slate-600">Beragam model pelatihan dan bimtek yang dirancang sesuai kebutuhan instansi pemerintah maupun sektor swasta, mulai dari kelas tatap muka, daring, hingga metode hybrid yang fleksibel dan efektif.</p>
+        <div class="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            @foreach ([
+                ['heroicon-o-academic-cap', 'Bimbingan Teknis', 'Bimbingan teknis bagi pemerintah daerah maupun peserta umum dari seluruh Indonesia.'],
+                ['heroicon-o-wrench-screwdriver', 'Workshop', 'Workshop interaktif untuk meningkatkan keterampilan praktis bersama para ahli berpengalaman.'],
+                ['heroicon-o-presentation-chart-bar', 'Seminar', 'Seminar membahas topik aktual dengan narasumber ahli dan sesi diskusi terbuka.'],
+                ['heroicon-o-check-badge', 'Sertifikasi', 'Pelatihan resmi dengan pengakuan kompetensi melalui sertifikat untuk meningkatkan kredibilitas peserta.'],
+            ] as [$icon, $heading, $text])
+                <div class="card p-4 sm:p-5">
+                    <span class="grid size-10 place-items-center rounded-lg bg-brand-50 text-brand-700">
+                        <x-dynamic-component :component="$icon" class="size-6" aria-hidden="true" />
+                    </span>
+                    <h3 class="mt-3 font-semibold text-slate-900">{{ $heading }}</h3>
+                    <p class="mt-1 text-sm text-slate-600">{{ $text }}</p>
+                </div>
+            @endforeach
+        </div>
+    </section>
+
     {{-- Kategori --}}
     <section class="container-page mt-10 sm:mt-16">
         <div class="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6">

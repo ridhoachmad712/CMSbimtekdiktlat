@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Post;
+use App\Services\WordPress\SpamFilter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
@@ -192,6 +193,66 @@ class WordPressImportTest extends TestCase
         $this->assertStringContainsString('<h2>Bagian Lain</h2>', $html);
         // Ringkasan tidak lagi mengulang judul.
         $this->assertSame('Era digitalisasi birokrasi', Post::where('wp_id', 101)->value('excerpt'));
+    }
+
+    public function test_spam_posts_are_never_imported(): void
+    {
+        $this->fakeWordPress([
+            $this->wpPost(201, '1xbet-rsmi-veb-sayti', [1], ['title' => ['rendered' => '1xBet Rəsmi Veb Saytı, bukmekerə daxil olun']]),
+            $this->wpPost(202, 'casinos-con-bono', [1], ['title' => ['rendered' => 'Casinos con Bono de Bienvenida en México']]),
+            $this->wpPost(203, 'bimtek-ccms', [3], ['title' => ['rendered' => 'Bimtek CCMS (Contract Management Specialist)']]),
+        ]);
+
+        $this->artisan('wp:import', ['--url' => self::BASE, '--delay' => 0])
+            ->expectsOutputToContain('Spam dilewati')
+            ->assertSuccessful();
+
+        $this->assertSame([203], Post::whereNotNull('wp_id')->pluck('wp_id')->all());
+    }
+
+    public function test_spam_filter_avoids_false_positives(): void
+    {
+        $this->assertTrue(SpamFilter::isSpam('Android üçün 1xBet APK'));
+        $this->assertTrue(SpamFilter::isSpam('Comparativa y Ranking magic 365 2026'));
+        $this->assertFalse(SpamFilter::isSpam('Bimtek CCMS (Contract Management Specialist)'));
+        $this->assertFalse(SpamFilter::isSpam('Bimtek Keuangan Desa', 'bimtek-keuangan-desa', '<p>Judicial review dan slot waktu pelatihan.</p>'));
+    }
+
+    public function test_seo_meta_imported_from_old_pages_without_overwriting_manual_edits(): void
+    {
+        $auto = Post::forceCreate(['title' => 'Pelatihan Dispakati', 'wp_slug' => 'pelatihan-dispakati', 'excerpt' => 'Ringkasan.', 'meta_description' => 'Ringkasan.', 'published_at' => now()->subDay()]);
+        $manual = Post::forceCreate(['title' => 'Bimtek SKP', 'wp_slug' => 'bimtek-skp', 'excerpt' => 'Ringkasan.', 'meta_description' => 'Deskripsi ditulis admin.', 'published_at' => now()->subDay()]);
+        $hacked = Post::forceCreate(['title' => 'Bimtek Arsip', 'wp_slug' => 'bimtek-arsip', 'excerpt' => 'Ringkasan.', 'published_at' => now()->subDay()]);
+
+        $page = fn (string $title, string $description) => Http::response(
+            '<html><head><title>'.$title.' - Pusat Edukasi Indonesia</title><meta name="description" content="'.$description.'"/>'
+            .'<meta property="og:site_name" content="Pusat Edukasi Indonesia" /></head></html>'
+        );
+        Http::fake([
+            self::BASE.'/pelatihan-dispakati/' => $page('Pelatihan Dispakati &amp; SKP 2026', 'Ikuti pelatihan Dispakati | 0821 3841 2796 | Daftar sekarang!'),
+            self::BASE.'/bimtek-skp/' => $page('Bimtek SKP', 'Deskripsi Rank Math.'),
+            self::BASE.'/bimtek-arsip/' => $page('Bimtek Arsip', 'Situs casino terbaik, bonus besar'),
+        ]);
+
+        $this->artisan('wp:seo', ['--url' => self::BASE])->assertSuccessful();
+
+        $auto->refresh();
+        $this->assertSame('Ikuti pelatihan Dispakati | 0821 3841 2796 | Daftar sekarang!', $auto->meta_description);
+        $this->assertSame('Pelatihan Dispakati & SKP 2026', $auto->meta_title);
+        $this->assertSame('Deskripsi ditulis admin.', $manual->fresh()->meta_description);
+        $this->assertNull($manual->fresh()->meta_title); // judul SEO sama dengan judul artikel
+        $this->assertNull($hacked->fresh()->meta_description);
+
+        $this->artisan('wp:seo', ['--url' => self::BASE, '--force' => true])->assertSuccessful();
+        $this->assertSame('Deskripsi Rank Math.', $manual->fresh()->meta_description);
+    }
+
+    public function test_old_rank_math_aliases_redirect_to_articles(): void
+    {
+        $this->fakeWordPress([$this->wpPost(301, 'bimtek-rkbmn-2026', [3])]);
+        $this->artisan('wp:import', ['--url' => self::BASE, '--delay' => 0])->assertSuccessful();
+
+        $this->get('/bimtek-training-rkbmn/')->assertStatus(301)->assertRedirect('/artikel/bimtek-rkbmn-2026');
     }
 
     public function test_limit_option(): void
