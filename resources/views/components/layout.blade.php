@@ -32,6 +32,12 @@
     $image ??= asset('images/og-default.png');
 
     $showMobileBar = ! request()->routeIs('register');
+
+    // Diisi lewat admin: Pengaturan Situs → SEO & Google.
+    $googleVerification = \App\Models\Setting::get('google_site_verification');
+    $bingVerification = \App\Models\Setting::get('bing_site_verification');
+    $ga4 = \App\Models\Setting::get('ga4_measurement_id');
+    $ga4 = is_string($ga4) && preg_match('/^G-[A-Z0-9]{4,20}$/', $ga4) ? $ga4 : null;
 @endphp
 
 <!DOCTYPE html>
@@ -45,6 +51,12 @@
         <meta name="robots" content="{{ $robots }}">
     @endif
     <link rel="canonical" href="{{ $canonical }}">
+    @if ($googleVerification)
+        <meta name="google-site-verification" content="{{ $googleVerification }}">
+    @endif
+    @if ($bingVerification)
+        <meta name="msvalidate.01" content="{{ $bingVerification }}">
+    @endif
 
     <meta property="og:site_name" content="{{ $siteName }}">
     <meta property="og:title" content="{{ $title ?: $fullTitle }}">
@@ -63,6 +75,15 @@
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @if ($ga4)
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ $ga4 }}"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', @js($ga4));
+        </script>
+    @endif
     {{ $head ?? '' }}
 </head>
 <body @class(['flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased', 'pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0' => $showMobileBar])>

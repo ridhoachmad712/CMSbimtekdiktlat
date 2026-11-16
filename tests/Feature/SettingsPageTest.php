@@ -101,4 +101,43 @@ class SettingsPageTest extends TestCase
 
         Livewire::test(Settings::class)->assertForbidden();
     }
+
+    public function test_search_console_bing_and_ga4_are_output_on_public_pages(): void
+    {
+        $this->withoutVite();
+        $this->actingAs(User::first());
+
+        Livewire::test(Settings::class)
+            ->fillForm([
+                // Admin menempel tag meta lengkap dari Search Console.
+                'google_site_verification' => '<meta name="google-site-verification" content="AbC123_-xyz" />',
+                'bing_site_verification' => 'BING99',
+                'ga4_measurement_id' => 'G-ABC123XYZ',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame('AbC123_-xyz', Setting::get('google_site_verification'));
+
+        $this->get('/')
+            ->assertSee('<meta name="google-site-verification" content="AbC123_-xyz">', false)
+            ->assertSee('<meta name="msvalidate.01" content="BING99">', false)
+            ->assertSee('googletagmanager.com/gtag/js?id=G-ABC123XYZ', false);
+
+        // Panel admin tidak memuat skrip analitik.
+        $this->get('/admin')->assertDontSee('googletagmanager.com', false);
+    }
+
+    public function test_seo_fields_are_optional_and_validated(): void
+    {
+        $this->withoutVite();
+        $this->actingAs(User::first());
+
+        $this->get('/')->assertDontSee('google-site-verification', false)->assertDontSee('googletagmanager', false);
+
+        Livewire::test(Settings::class)
+            ->fillForm(['ga4_measurement_id' => 'UA-12345'])
+            ->call('save')
+            ->assertHasFormErrors(['ga4_measurement_id']);
+    }
 }

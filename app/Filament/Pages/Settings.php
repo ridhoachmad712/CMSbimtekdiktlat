@@ -44,7 +44,21 @@ class Settings extends Page
         'email' => '',
         'address' => '',
         'social_links' => ['facebook' => '', 'instagram' => '', 'youtube' => ''],
+        'google_site_verification' => '',
+        'bing_site_verification' => '',
+        'ga4_measurement_id' => '',
     ];
+
+    /** Kolom verifikasi boleh diisi tag meta lengkap; yang disimpan hanya nilai content-nya. */
+    public static function verificationCode(?string $value): string
+    {
+        $value = trim((string) $value);
+        if (preg_match('/content\s*=\s*["\']([^"\']+)["\']/i', $value, $m)) {
+            $value = $m[1];
+        }
+
+        return preg_replace('/[^A-Za-z0-9_\-]/', '', $value);
+    }
 
     /** @var array<string, mixed>|null */
     public ?array $data = [];
@@ -140,6 +154,28 @@ class Settings extends Page
                             ->url()
                             ->maxLength(255),
                     ]),
+                Section::make('SEO & Google')
+                    ->description('Untuk verifikasi kepemilikan situs dan statistik pengunjung. Kosongkan bila tidak dipakai.')
+                    ->columns(2)
+                    ->collapsible()
+                    ->schema([
+                        TextInput::make('google_site_verification')
+                            ->label('Kode Verifikasi Google Search Console')
+                            ->placeholder('<meta name="google-site-verification" content="..."> atau kodenya saja')
+                            ->maxLength(300)
+                            ->helperText('Search Console → Tambahkan properti → Awalan URL → metode "Tag HTML". Tempel tag atau kodenya di sini, simpan, lalu klik Verifikasi di Search Console.')
+                            ->columnSpanFull(),
+                        TextInput::make('bing_site_verification')
+                            ->label('Kode Verifikasi Bing Webmaster (opsional)')
+                            ->placeholder('<meta name="msvalidate.01" content="..."> atau kodenya saja')
+                            ->maxLength(300),
+                        TextInput::make('ga4_measurement_id')
+                            ->label('Google Analytics 4 — Measurement ID (opsional)')
+                            ->placeholder('G-XXXXXXXXXX')
+                            ->regex('/^G-[A-Z0-9]{4,20}$/')
+                            ->validationMessages(['regex' => 'Format Measurement ID: G-XXXXXXXXXX'])
+                            ->maxLength(30),
+                    ]),
             ]);
     }
 
@@ -171,6 +207,9 @@ class Settings extends Page
             $value = $data[$key] ?? self::KEYS[$key];
             if (is_array(self::KEYS[$key])) {
                 $value = array_map(fn ($v) => (string) $v, array_merge(self::KEYS[$key], (array) $value));
+            }
+            if (in_array($key, ['google_site_verification', 'bing_site_verification'], true)) {
+                $value = static::verificationCode($value);
             }
 
             // Lewat model agar event `saved` menghapus cache 'settings'.
